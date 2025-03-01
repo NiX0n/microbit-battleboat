@@ -44,6 +44,7 @@ function newGame () {
     ]
     cursor = [0, 0]
     ship = [randint(0, buffer.length - 1), randint(0, buffer[0].length - 1)]
+    console.log(JSON.stringify(ship))
     buffer[cursor[0]][cursor[1]] = true
 }
 // We use a separate LED output buffer for smooth/flickerless rendering.
@@ -58,6 +59,18 @@ function renderBuffer () {
         }
     }
 }
+input.onButtonPressed(Button.AB, function () {
+    music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+    if (cursor[0] == ship[0] && cursor[1] == ship[1]) {
+        // hit
+        music.play(music.createSoundExpression(WaveShape.Square, 43, 43, 255, 255, 1000, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+        music._playDefaultBackground(music.builtInPlayableMelody(Melodies.PowerUp), music.PlaybackMode.UntilDone)
+        newGame()
+    } else {
+        // miss
+        music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.UntilDone)
+    }
+})
 input.onButtonPressed(Button.B, function () {
     // Move down
     moveCursor(true)
@@ -67,9 +80,9 @@ function moveCursor (rightDown: boolean) {
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? buffer.length : buffer[0].length)
     buffer[cursor[0]][cursor[1]] = true
 }
-let ship: number[] = []
-let cursor: number[] = []
 let buffer: boolean[][] = []
+let cursor: number[] = []
+let ship: number[] = []
 newGame()
 basic.forever(function () {
     renderBuffer()
