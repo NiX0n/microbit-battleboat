@@ -5,7 +5,7 @@ input.onButtonPressed(Button.A, function () {
 // buffer[ship[0]][ship[1]] = true
 function newGame () {
     // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
-    buffer = [
+    ledBuffer = [
     [
     false,
     false,
@@ -43,15 +43,29 @@ function newGame () {
     ]
     ]
     cursor = [0, 0]
-    ship = [randint(0, buffer.length - 1), randint(0, buffer[0].length - 1)]
+    ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
+    nPlayers = 2
+    if(nPlayers > 1)
+    {
+        radio.setGroup(RADIO_GROUP)
+        // Handshake
+        radio.sendString('null')
+    }
+
+    // Debug hint
     console.log(JSON.stringify(ship))
-    buffer[cursor[0]][cursor[1]] = true
+
+    //console.log(`\x02${JSON.stringify({ id, cursor })}\x02`)
+
+    // Buffer stuff
+    ledBuffer[cursor[0]][cursor[1]] = true
+
 }
 // We use a separate LED output buffer for smooth/flickerless rendering.
-function renderBuffer () {
-    for (let x = 0; x <= buffer.length - 1; x++) {
-        for (let y = 0; y <= buffer[x].length - 1; y++) {
-            if (buffer[x][y]) {
+function renderLedBuffer () {
+    for (let x = 0; x <= ledBuffer.length - 1; x++) {
+        for (let y = 0; y <= ledBuffer[x].length - 1; y++) {
+            if (ledBuffer[x][y]) {
                 led.plot(x, y)
             } else {
                 led.unplot(x, y)
@@ -60,6 +74,8 @@ function renderBuffer () {
     }
 }
 input.onButtonPressed(Button.AB, function () {
+    radio.sendString(JSON.stringify({c:cursor}))
+
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
     if (cursor[0] == ship[0] && cursor[1] == ship[1]) {
         // hit
@@ -71,21 +87,29 @@ input.onButtonPressed(Button.AB, function () {
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.UntilDone)
     }
 })
+// 19 characters max
+radio.onReceivedString(function (receivedString) {
+    console.log({serialNumber: radio.receivedPacket(RadioPacketProperty.SerialNumber),  receivedString})
+})
 input.onButtonPressed(Button.B, function () {
     // Move down
     moveCursor(true)
 })
 function moveCursor (rightDown: boolean) {
-    buffer[cursor[0]][cursor[1]] = false
-    cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? buffer.length : buffer[0].length)
-    buffer[cursor[0]][cursor[1]] = true
+    ledBuffer[cursor[0]][cursor[1]] = false
+    cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
+    ledBuffer[cursor[0]][cursor[1]] = true
 }
-let buffer: boolean[][] = []
 let cursor: number[] = []
 let ship: number[] = []
+let ledBuffer: boolean[][] = []
+let RADIO_GROUP = 3
+let nPlayers: number = 0
+let id: number = control.deviceSerialNumber();
+radio.setTransmitSerialNumber(true)
 newGame()
 basic.forever(function () {
-    renderBuffer()
+    renderLedBuffer()
     // This controls the speed of the game
     basic.pause(500)
 })
