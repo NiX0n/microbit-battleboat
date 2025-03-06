@@ -1,7 +1,3 @@
-input.onButtonPressed(Button.A, function () {
-    // Move right
-    moveCursor(false)
-})
 // buffer[ship[0]][ship[1]] = true
 function newGame () {
     // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
@@ -89,7 +85,16 @@ input.onButtonPressed(Button.AB, function () {
 })
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
-    console.log({serialNumber: radio.receivedPacket(RadioPacketProperty.SerialNumber),  receivedString})
+    let receivedObject = JSON.parse(receivedString)
+    console.log({ serialNumber: radio.receivedPacket(RadioPacketProperty.SerialNumber), receivedObject })
+    if ((receivedObject || {}).c)
+    {
+        console.log(receivedObject.c)
+    }
+})
+input.onButtonPressed(Button.A, function () {
+    // Move right
+    moveCursor(false)
 })
 input.onButtonPressed(Button.B, function () {
     // Move down
@@ -100,12 +105,12 @@ function moveCursor (rightDown: boolean) {
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
     ledBuffer[cursor[0]][cursor[1]] = true
 }
+let RADIO_GROUP = 3
+let SERIAL_NUMBER: number = control.deviceSerialNumber()
 let cursor: number[] = []
 let ship: number[] = []
 let ledBuffer: boolean[][] = []
-let RADIO_GROUP = 3
 let nPlayers: number = 0
-let id: number = control.deviceSerialNumber();
 radio.setTransmitSerialNumber(true)
 newGame()
 basic.forever(function () {
