@@ -2,7 +2,6 @@
  * https://github.com/NiX0n/microbit-battleboat
  * 
  * @TODO
- * - Add ship placment mode/UX
  * - Add bomb receiver mode/UX
  * - Add blink hold on fire sequence, etc
  * - Add user-switchable nPlayers
@@ -11,13 +10,12 @@
 /**
  * Start New Game
  */
-function newGame () {
+function newGame() {
     newLedBuffer()
     cursor = [0, 0]
     ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
     nPlayers = 2
-    if(nPlayers > 1)
-    {
+    if (nPlayers > 1) {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
         // Handshake
@@ -47,7 +45,7 @@ function newLedBuffer() {
 /**
  * Render ledBuffer.
  */
-function renderLedBuffer () {
+function renderLedBuffer() {
     for (let x = 0; x <= ledBuffer.length - 1; x++) {
         for (let y = 0; y <= ledBuffer[x].length - 1; y++) {
             if (ledBuffer[x][y]) {
@@ -70,25 +68,24 @@ input.onButtonPressed(Button.B, function () {
 })
 
 input.onButtonPressed(Button.AB, function () {
-    radio.sendString(JSON.stringify({c:cursor}))
+    radio.sendString(JSON.stringify({ c: cursor }))
     switch (mode) {
-    case MODES.ATTACK:
-        attack()
-        break
+        case MODES.ATTACK:
+            attack()
+            break
 
-    case MODES.PLACE:
-        place()
-        break
+        case MODES.PLACE:
+            place()
+            break
 
-    case MODES.WAIT:
-        break
+        case MODES.WAIT:
+            break
 
     }
-    
+
 })
 
-function attack()
-{
+function attack() {
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
     if (cursor[0] == ship[0] && cursor[1] == ship[1]) {
         // hit
@@ -101,36 +98,33 @@ function attack()
     }
 }
 
-function place()
-{
+function place() {
     // Set ship to cursor location
     // Use slice() to get copy of array
     // Instead of object refrence
     ship = cursor.slice()
-    music.play(music.stringPlayable("", 120), music.PlaybackMode.UntilDone)
+    music.play(music.createSoundExpression(WaveShape.Sine, 3527, 4126, 255, 255, 500, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+    mode = MODES.ATTACK
 }
 
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
     // Is this is a feedback loop?
-    if(serialNumber === SERIAL_NUMBER)
-    {
+    if (serialNumber === SERIAL_NUMBER) {
         // There's nothing to do
         return
     }
 
     let receivedObject = JSON.parse(receivedString)
     // Is receivedObject empty?
-    if(!receivedObject)
-    {
+    if (!receivedObject) {
         // There's nothing to do
         return
     }
 
     console.log({ serialNumber, receivedObject })
-    if (receivedObject.c)
-    {
+    if (receivedObject.c) {
         console.log(receivedObject.c)
     }
 })
@@ -141,7 +135,7 @@ radio.onReceivedString(function (receivedString) {
  *      false: right,
  *      true: down
  */
-function moveCursor (rightDown: boolean) {
+function moveCursor(rightDown: boolean) {
     ledBuffer[cursor[0]][cursor[1]] = false
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
 }
@@ -149,8 +143,7 @@ function moveCursor (rightDown: boolean) {
 /**
  * BLINK! BLINK! BLINK!
  */
-function blinkCursor()
-{
+function blinkCursor() {
     ledBuffer[cursor[0]][cursor[1]] = !ledBuffer[cursor[0]][cursor[1]]
 }
 
@@ -174,7 +167,7 @@ let LOOP_DELAY = 500
 //
 // Declare dynamic variables
 //
-let mode: number = MODES.ATTACK
+let mode: number = MODES.PLACE
 let cursor: number[] = []
 let ship: number[] = []
 let ledBuffer: boolean[][] = []
