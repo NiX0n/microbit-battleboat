@@ -3,46 +3,10 @@
  * @TODO
  * - Add ship placment mode/UX
  * - Add bomb receiver mode/UX
+ * - Add blink hold on fire sequence, etc
  */
 function newGame () {
-    // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
-    ledBuffer = [
-    [
-    false,
-    false,
-    false,
-    false,
-    false
-    ],
-    [
-    false,
-    false,
-    false,
-    false,
-    false
-    ],
-    [
-    false,
-    false,
-    false,
-    false,
-    false
-    ],
-    [
-    false,
-    false,
-    false,
-    false,
-    false
-    ],
-    [
-    false,
-    false,
-    false,
-    false,
-    false
-    ]
-    ]
+    newLedBuffer()
     cursor = [0, 0]
     ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
     nPlayers = 2
@@ -62,6 +26,19 @@ function newGame () {
     ledBuffer[cursor[0]][cursor[1]] = true
 
 }
+
+function newLedBuffer() {
+    // ledBuffer is a boolean[5][5] matrix.
+    ledBuffer = []
+    // We're initializing using for loops because of limitations of the JavaScript engine (i.e no support for Array constructor).
+    for (let x1 = 0; x1 <= LED_BUFFER_WIDTH - 1; x1++) {
+        ledBuffer.push([])
+        for (let y1 = 0; y1 <= LED_BUFFER_HEIGHT - 1; y1++) {
+            ledBuffer[x1].push(false)
+        }
+    }
+}
+
 // We use a separate LED output buffer for smooth/flickerless rendering.
 function renderLedBuffer () {
     for (let x = 0; x <= ledBuffer.length - 1; x++) {
@@ -133,6 +110,8 @@ function blinkCursor()
     ledBuffer[cursor[0]][cursor[1]] = !ledBuffer[cursor[0]][cursor[1]]
 }
 
+let LED_BUFFER_WIDTH = 5
+let LED_BUFFER_HEIGHT = 5
 let RADIO_GROUP = 3
 let SERIAL_NUMBER: number = control.deviceSerialNumber()
 let cursor: number[] = []
