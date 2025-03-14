@@ -1,18 +1,9 @@
 
 > Open this page at [https://nix0n.github.io/microbit-battleboat/](https://nix0n.github.io/microbit-battleboat/)
 
-## Use as Extension
+## Import this project
 
-This repository can be added as an **extension** in MakeCode.
-
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **New Project**
-* click on **Extensions** under the gearwheel menu
-* search for **https://github.com/nix0n/microbit-battleboat** and import
-
-## Edit this project
-
-To edit this repository in MakeCode.
+To import this repository in MakeCode.
 
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
