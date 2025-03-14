@@ -59,6 +59,16 @@ function renderLedBuffer () {
     }
 }
 
+input.onButtonPressed(Button.A, function () {
+    // Move right
+    moveCursor(false)
+})
+
+input.onButtonPressed(Button.B, function () {
+    // Move down
+    moveCursor(true)
+})
+
 input.onButtonPressed(Button.AB, function () {
     radio.sendString(JSON.stringify({c:cursor}))
 
@@ -96,16 +106,6 @@ radio.onReceivedString(function (receivedString) {
     {
         console.log(receivedObject.c)
     }
-})
-
-input.onButtonPressed(Button.A, function () {
-    // Move right
-    moveCursor(false)
-})
-
-input.onButtonPressed(Button.B, function () {
-    // Move down
-    moveCursor(true)
 })
 
 /**
