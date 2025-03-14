@@ -3,7 +3,7 @@
  * @TODO
  * - Add ship placment mode/UX
  * - Add bomb receiver mode/UX
- * - Add radio feedback loop detection
+ * - Add cursor blink
  */
 function newGame () {
     // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
@@ -91,8 +91,15 @@ input.onButtonPressed(Button.AB, function () {
 })
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
+    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
+    // If this is a feedback loop
+    if(serialNumber === SERIAL_NUMBER)
+    {
+        // Stop doing anything else
+        return
+    }
     let receivedObject = JSON.parse(receivedString)
-    console.log({ serialNumber: radio.receivedPacket(RadioPacketProperty.SerialNumber), receivedObject })
+    console.log({ serialNumber, receivedObject })
     if ((receivedObject || {}).c)
     {
         console.log(receivedObject.c)
