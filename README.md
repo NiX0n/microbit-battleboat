@@ -1,6 +1,13 @@
 
 > Open this page at [https://nix0n.github.io/microbit-battleboat/](https://nix0n.github.io/microbit-battleboat/)
 
+# Micro:bit Battleboat
+An implementation of the classic [Battleship game](https://en.wikipedia.org/wiki/Battleship_(game)) for play on one more more BBC Micro:bits.
+
+## Hardware Requirements
+* A [BBC Micro:bit v2](https://en.wikipedia.org/wiki/Micro_Bit)
+* More BBC Micro:bit v2s for multiple players
+
 ## Import this project
 
 To import this repository in MakeCode.
