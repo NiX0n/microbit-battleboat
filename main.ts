@@ -92,15 +92,23 @@ input.onButtonPressed(Button.AB, function () {
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
-    // If this is a feedback loop
+    // Is this is a feedback loop?
     if(serialNumber === SERIAL_NUMBER)
     {
-        // Stop doing anything else
+        // There's nothing to do
         return
     }
+
     let receivedObject = JSON.parse(receivedString)
+    // Is receivedObject empty?
+    if(!receivedObject)
+    {
+        // There's nothing to do
+        return
+    }
+
     console.log({ serialNumber, receivedObject })
-    if ((receivedObject || {}).c)
+    if (receivedObject.c)
     {
         console.log(receivedObject.c)
     }
