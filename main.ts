@@ -3,7 +3,6 @@
  * @TODO
  * - Add ship placment mode/UX
  * - Add bomb receiver mode/UX
- * - Add cursor blink
  */
 function newGame () {
     // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
@@ -113,19 +112,27 @@ radio.onReceivedString(function (receivedString) {
         console.log(receivedObject.c)
     }
 })
+
 input.onButtonPressed(Button.A, function () {
     // Move right
     moveCursor(false)
 })
+
 input.onButtonPressed(Button.B, function () {
     // Move down
     moveCursor(true)
 })
+
 function moveCursor (rightDown: boolean) {
     ledBuffer[cursor[0]][cursor[1]] = false
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
-    ledBuffer[cursor[0]][cursor[1]] = true
 }
+
+function blinkCursor()
+{
+    ledBuffer[cursor[0]][cursor[1]] = !ledBuffer[cursor[0]][cursor[1]]
+}
+
 let RADIO_GROUP = 3
 let SERIAL_NUMBER: number = control.deviceSerialNumber()
 let cursor: number[] = []
@@ -134,7 +141,9 @@ let ledBuffer: boolean[][] = []
 let nPlayers: number = 0
 radio.setTransmitSerialNumber(true)
 newGame()
+
 basic.forever(function () {
+    blinkCursor()
     renderLedBuffer()
     // This controls the speed of the game
     basic.pause(500)
