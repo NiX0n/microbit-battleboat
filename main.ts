@@ -71,7 +71,20 @@ input.onButtonPressed(Button.B, function () {
 
 input.onButtonPressed(Button.AB, function () {
     radio.sendString(JSON.stringify({c:cursor}))
-    attack()
+    switch (mode) {
+    case MODES.ATTACK:
+        attack()
+        break
+
+    case MODES.PLACE:
+        place()
+        break
+
+    case MODES.WAIT:
+        break
+
+    }
+    
 })
 
 function attack()
@@ -86,6 +99,15 @@ function attack()
         // miss
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.UntilDone)
     }
+}
+
+function place()
+{
+    // Set ship to cursor location
+    // Use slice() to get copy of array
+    // Instead of object refrence
+    ship = cursor.slice()
+    music.play(music.stringPlayable("", 120), music.PlaybackMode.UntilDone)
 }
 
 // 19 characters max
@@ -136,6 +158,12 @@ function blinkCursor()
 // Declare pseudo-constants
 //
 
+let MODES = {
+    NEW: 0,
+    ATTACK: 1,
+    WAIT: 2,
+    PLACE: 3
+}
 let LED_BUFFER_WIDTH = 5
 let LED_BUFFER_HEIGHT = 5
 let RADIO_GROUP = 3
@@ -146,7 +174,7 @@ let LOOP_DELAY = 500
 //
 // Declare dynamic variables
 //
-
+let mode: number = MODES.ATTACK
 let cursor: number[] = []
 let ship: number[] = []
 let ledBuffer: boolean[][] = []
