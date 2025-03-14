@@ -1,4 +1,10 @@
-// buffer[ship[0]][ship[1]] = true
+/**
+ * https://github.com/NiX0n/microbit-battleboat
+ * @TODO
+ * - Add ship placment mode/UX
+ * - Add bomb receiver mode/UX
+ * - Add radio feedback loop detection
+ */
 function newGame () {
     // Buffer is a boolean[5][5] matrix.  We're initializing using a literal because of limitations of the JavaScript engine (i.e no support for Array constructor).
     ledBuffer = [
