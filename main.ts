@@ -27,11 +27,6 @@ function newGame () {
     // Debug hint
     console.log(JSON.stringify(ship))
 
-    //console.log(`\x02${JSON.stringify({ id, cursor })}\x02`)
-
-    // Buffer stuff
-    ledBuffer[cursor[0]][cursor[1]] = true
-
 }
 
 /**
