@@ -71,7 +71,11 @@ input.onButtonPressed(Button.B, function () {
 
 input.onButtonPressed(Button.AB, function () {
     radio.sendString(JSON.stringify({c:cursor}))
+    attack()
+})
 
+function attack()
+{
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
     if (cursor[0] == ship[0] && cursor[1] == ship[1]) {
         // hit
@@ -82,7 +86,8 @@ input.onButtonPressed(Button.AB, function () {
         // miss
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.UntilDone)
     }
-})
+}
+
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
