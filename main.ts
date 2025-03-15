@@ -14,7 +14,7 @@ function newGame() {
     newLedBuffer()
     cursor = [0, 0]
     ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
-    nPlayers = 2
+    nPlayers = 1
     if (nPlayers > 1) {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
@@ -68,7 +68,6 @@ input.onButtonPressed(Button.B, function () {
 })
 
 input.onButtonPressed(Button.AB, function () {
-    radio.sendString(JSON.stringify({ c: cursor }))
     switch (mode) {
         case MODES.ATTACK:
             attack()
@@ -78,7 +77,7 @@ input.onButtonPressed(Button.AB, function () {
             place()
             break
 
-        case MODES.WAIT:
+        case MODES.DEFEND_WAIT:
             break
 
     }
@@ -86,12 +85,29 @@ input.onButtonPressed(Button.AB, function () {
 })
 
 function attack() {
+    if(nPlayers > 1)
+    {
+        radio.sendString(JSON.stringify({ m: MODES.ATTACK, c: cursor }))
+        mode = MODES.ATTACK_WAIT
+        return
+    }
+
+    notifyAttack(isHit(cursor))
+    newGame()
+}
+
+function isHit(location: number[])
+{
+    return location[0] == ship[0] && location[1] == ship[1]
+}
+
+function notifyAttack(isHitted: boolean)
+{
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    if (cursor[0] == ship[0] && cursor[1] == ship[1]) {
+    if (isHitted) {
         // hit
         music.play(music.createSoundExpression(WaveShape.Square, 43, 43, 255, 255, 1000, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.PowerUp), music.PlaybackMode.UntilDone)
-        newGame()
     } else {
         // miss
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.UntilDone)
@@ -123,15 +139,45 @@ radio.onReceivedString(function (receivedString) {
         return
     }
 
+    // debug stuff
     console.log({ serialNumber, receivedObject })
     if (receivedObject.c) {
         console.log(receivedObject.c)
+    }
+
+    // switch game mode
+    // not to be confused with packet mode
+    switch(mode) {
+        case MODES.ATTACK:
+            break
+        case MODES.ATTACK_WAIT:
+            if (receivedObject.m != MODES.DEFEND_WAIT) {
+                console.error(`receivedObject has invalid mode`)
+                return
+            }
+            if(receivedObject.h)
+            {
+
+            }
+            break
+        case MODES.DEFEND_WAIT:
+            if(receivedObject.m != MODES.ATTACK)
+            {
+                console.error(`receivedObject has invalid mode`)
+                return
+            }
+            radio.sendString(JSON.stringify({ 
+                m: MODES.DEFEND_WAIT, 
+                h: isHit(receivedObject.c), 
+                c: receivedObject.c 
+            }))
+            break
     }
 })
 
 /**
  * Move cusor right or down
- * @param rightDown
+ * @param {boolean} rightDown
  *      false: right,
  *      true: down
  */
@@ -154,8 +200,9 @@ function blinkCursor() {
 let MODES = {
     NEW: 0,
     ATTACK: 1,
-    WAIT: 2,
-    PLACE: 3
+    ATTACK_WAIT: 2,
+    DEFEND_WAIT: 3,
+    PLACE: 4
 }
 let LED_BUFFER_WIDTH = 5
 let LED_BUFFER_HEIGHT = 5
