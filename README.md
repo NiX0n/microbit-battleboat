@@ -14,9 +14,9 @@ Sink your opponent's boat.
 
 | Input   | Action           |
 | ------- | ---------------- |
-|  __A__  | Move Cusor Right |
-|  __B__  | Move Cusor Down  |
-| __A+B__ | Place Ship/FIRE! |
+|  **A**  | Move Cusor Right |
+|  **B**  | Move Cusor Down  |
+| **A+B** | Place Ship/FIRE! |
 
 ## Hardware Requirements
  * A [BBC Micro:bit v2](https://en.wikipedia.org/wiki/Micro_Bit)
