@@ -227,25 +227,12 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
     }
 
 
-    // switch game mode
-    // not to be confused with packet mode
+    // switch device game mode
+    // validate sent packet mode
+    // then call respective callback
     switch (mode) {
         case MODES.ATTACK:
             console.log(`${SERIAL_NUMBER} in attack mode for some reason`)
-            break
-
-        case MODES.ATTACK_WAIT:
-            if (receivedObject.m != MODES.DEFEND) {
-                console.error(`receivedObject has invalid mode`)
-                return
-            }
-            console.log(`${SERIAL_NUMBER} attack success? ${receivedObject.h ? 'yes' : 'no'}`)
-            notifyAttack(receivedObject.h)
-            if (receivedObject.h) {
-                newGame()
-                break
-            }
-            mode = MODES.ATTACK
             break
 
         case MODES.DEFEND:
@@ -254,6 +241,14 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
                 return
             }
             onReceivedAttack(receivedObject, props)
+            break
+
+        case MODES.ATTACK_WAIT:
+            if (receivedObject.m != MODES.DEFEND) {
+                console.error(`receivedObject has invalid mode`)
+                return
+            }
+            onReceivedDefend(receivedObject, props)
             break
     }
 }
@@ -267,6 +262,17 @@ function onReceivedAttack(receivedObject: any, props: any[]) {
         c: receivedObject.c
     })
     console.log(`${SERIAL_NUMBER} sent attack response`)
+}
+
+function onReceivedDefend(receivedObject: any, props: any[]) {
+    let serialNumber = props[RadioPacketProperty.SerialNumber]
+    console.log(`${SERIAL_NUMBER} attack success? ${receivedObject.h ? 'yes' : 'no'}`)
+    notifyAttack(receivedObject.h)
+    if (receivedObject.h) {
+        newGame()
+        return
+    }
+    mode = MODES.ATTACK
 }
 
 
