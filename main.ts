@@ -13,26 +13,37 @@
  */
 
 /**
- * Start New Game
+ * Start New Game.
+ * Reset game environment back to initial state.
  */
 function newGame() {
     newLedBuffer()
     cursor = [0, 0]
-    ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
-    nPlayers = 2
-    mode = MODES.ATTACK
 
+    // @TODO Replace w/ user input
+    nPlayers = 2
+
+    // Is this a multiplayer game?
     if (nPlayers > 1) {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
         // Handshake
         radioSendObject(null)
         mode = MODES.PLACE
+
+        // skip the rest
+        return
     }
+    
+    // This is a single player game
 
-    // Debug hint
-    console.log(JSON.stringify(ship))
+    // Randomly place ship
+    ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
+    // Go directly to ATTACK mode
+    mode = MODES.ATTACK
 
+    // @TODO DELETEME
+    console.log(`Hint: ${JSON.stringify(ship)}`)
 }
 
 /**
