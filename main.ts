@@ -105,11 +105,14 @@ input.onButtonPressed(Button.AB, function () {
  * @TODO Remove after turn negotiation implemented
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    mode = MODES.DEFEND
-    defaultLedState = true
-    isCursorDisabled = true
-    newLedBuffer()
-    console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
+    if(nPlayers > 1 || players.length > 1)
+    {
+        mode = MODES.DEFEND
+        defaultLedState = true
+        isCursorDisabled = true
+        newLedBuffer()
+        console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
+    }
 })
 
 /**
@@ -312,7 +315,8 @@ enum MODES {
     PLACE,
     ATTACK,
     ATTACK_WAIT,
-    DEFEND
+    DEFEND,
+    JOIN
 }
 
 /**
@@ -390,7 +394,12 @@ let rxBuffer: string[] = []
  * Number of Players
  * @TODO Replace hard value w/ user input
  */
-let nPlayers: number = 2
+let nPlayers: number = 1
+
+/**
+ * List of player device serial numbers
+ */
+let players = [SERIAL_NUMBER]
 
 // #endregion
 
