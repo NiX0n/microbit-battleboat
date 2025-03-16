@@ -20,9 +20,6 @@ function newGame() {
     newLedBuffer()
     cursor = [0, 0]
 
-    // @TODO Replace w/ user input
-    nPlayers = 2
-
     // Is this a multiplayer game?
     if (nPlayers > 1) {
         radio.setTransmitSerialNumber(true)
@@ -103,11 +100,18 @@ input.onButtonPressed(Button.AB, function () {
 
 })
 
+/**
+ * We need some way to put one of the devices in this mode for debugging
+ * @TODO Remove after turn negotiation implemented
+ */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     mode = MODES.DEFEND_WAIT
     console.log(`${SERIAL_NUMBER} is in DEFEND_WAIT`)
 })
 
+/**
+ * Attack opponent
+ */
 function attack() {
     if(nPlayers > 1)
     {
@@ -120,11 +124,19 @@ function attack() {
     newGame()
 }
 
+/**
+ * Is this the location of the ship?
+ * @param {number[2]} location
+ */
 function isHit(location: number[])
 {
     return location[0] == ship[0] && location[1] == ship[1]
 }
 
+/**
+ * Let the user know that there's been an attack
+ * @param {boolean} isHitted whether the attack was successful
+ */
 function notifyAttack(isHitted: boolean)
 {
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
@@ -260,7 +272,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
  *      true: down
  */
 function moveCursor(rightDown: boolean) {
-    ledBuffer[cursor[0]][cursor[1]] = false
+    ledBuffer[cursor[0]][cursor[1]] = defaultLedState
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
 }
 
@@ -275,6 +287,9 @@ function blinkCursor() {
 // Declare pseudo-constants
 //
 
+/**
+ * Game & Packet Mode States
+ */
 enum MODES {
     NEW,
     ATTACK,
@@ -282,22 +297,69 @@ enum MODES {
     DEFEND_WAIT,
     PLACE
 }
+
+/**
+ * Microbit v2 is 5 LEDs wide
+ */
 let LED_BUFFER_WIDTH = 5
+
+/**
+ * Microbit v2 is 5 LEDs wide
+ */
 let LED_BUFFER_HEIGHT = 5
+
+/**
+ * Radio Group must be same as other players
+ */
 let RADIO_GROUP = 3
+
+/**
+ * This device's serial number
+ */
 let SERIAL_NUMBER: number = control.deviceSerialNumber()
+
+/**
+ * Maximum string length supported by radio.sendString()
+ */
 let MAX_PACKET_LENGTH: number = 19
+
+/**
+ * Refresh rate of LED buffer render
+ */
 let LOOP_DELAY = 500
 
 
 //
 // Declare dynamic variables
 //
+/**
+ * Game Mode
+ */
 let mode: MODES = MODES.NEW
+
+/**
+ * Ship Location [x, y]
+ */
 let ship: number[] = []
+
+/**
+ * Cursor Location [x, y]
+ */
 let cursor: number[] = []
+
+/**
+ * Is cursor hidden from user
+ */
 let isCursorDisabled: boolean = false
+
+/**
+ * boolean[5][5] matrix
+ */
 let ledBuffer: boolean[][] = []
+
+/**
+ * Initial value of all entries in ledBuffer
+ */
 let defaultLedState = false
 
 /**
@@ -306,7 +368,11 @@ let defaultLedState = false
  */
 let rxBuffer: string[] = []
 
-let nPlayers: number = 0
+/**
+ * Number of Players
+ * @TODO Replace hard value w/ user input
+ */
+let nPlayers: number = 2
 
 //
 // Initialize
@@ -320,6 +386,5 @@ newGame()
 basic.forever(function () {
     blinkCursor()
     renderLedBuffer()
-    // This controls the speed of the game
     basic.pause(LOOP_DELAY)
 })
