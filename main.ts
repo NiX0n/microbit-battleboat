@@ -14,12 +14,15 @@ function newGame() {
     newLedBuffer()
     cursor = [0, 0]
     ship = [randint(0, ledBuffer.length - 1), randint(0, ledBuffer[0].length - 1)]
-    nPlayers = 1
+    nPlayers = 2
+    mode = MODES.ATTACK
+
     if (nPlayers > 1) {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
         // Handshake
         radio.sendString('null')
+        mode = MODES.PLACE
     }
 
     // Debug hint
@@ -82,6 +85,11 @@ input.onButtonPressed(Button.AB, function () {
 
     }
 
+})
+
+input.onLogoEvent(TouchButtonEvent.Pressed, function () {
+    mode = MODES.DEFEND_WAIT
+    console.log(`${SERIAL_NUMBER} is in DEFEND_WAIT`)
 })
 
 function attack() {
@@ -155,9 +163,10 @@ radio.onReceivedString(function (receivedString) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
+            notifyAttack(receivedObject.h)
             if(receivedObject.h)
             {
-
+                newGame()
             }
             break
         case MODES.DEFEND_WAIT:
@@ -166,6 +175,7 @@ radio.onReceivedString(function (receivedString) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
+            console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedObject.c) ? 'yes' : 'no'}`)
             radio.sendString(JSON.stringify({ 
                 m: MODES.DEFEND_WAIT, 
                 h: isHit(receivedObject.c), 
@@ -214,7 +224,7 @@ let LOOP_DELAY = 500
 //
 // Declare dynamic variables
 //
-let mode: number = MODES.PLACE
+let mode: number = MODES.NEW
 let cursor: number[] = []
 let ship: number[] = []
 let ledBuffer: boolean[][] = []
