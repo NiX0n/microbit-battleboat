@@ -78,12 +78,12 @@ function renderLedBuffer() {
 
 input.onButtonPressed(Button.A, function () {
     // Move right
-    moveCursor(false)
+    moveCursor(true)
 })
 
 input.onButtonPressed(Button.B, function () {
     // Move down
-    moveCursor(true)
+    moveCursor(false)
 })
 
 input.onButtonPressed(Button.AB, function () {
