@@ -284,7 +284,7 @@ function blinkCursor() {
 }
 
 //
-// Declare pseudo-constants
+// #region Declare pseudo-constants
 //
 
 /**
@@ -328,9 +328,10 @@ let MAX_PACKET_LENGTH: number = 19
  */
 let LOOP_DELAY = 500
 
+// #endregion
 
 //
-// Declare dynamic variables
+// #region Declare dynamic variables
 //
 /**
  * Game Mode
@@ -373,6 +374,8 @@ let rxBuffer: string[] = []
  * @TODO Replace hard value w/ user input
  */
 let nPlayers: number = 2
+
+// #endregion
 
 //
 // Initialize
