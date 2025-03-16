@@ -2,9 +2,14 @@
  * https://github.com/NiX0n/microbit-battleboat
  * 
  * @TODO
- * - Add bomb receiver mode/UX
+ * - Add defend wait mode/UX
+ * - Add turn negotiation
+ * - Add turn cycle
+ * - Add audio on newGame()/place mode
+ * - Add audio on 2p+ turn start
  * - Add blink hold on fire sequence, etc
  * - Add user-switchable nPlayers
+ * - Add user-switchable radio group
  */
 
 /**
