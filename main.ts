@@ -122,15 +122,24 @@ function notifyAttack(isHitted: boolean)
     }
 }
 
+/**
+ * Place ship
+ */
 function place() {
     // Set ship to cursor location
     // Use slice() to get copy of array
     // Instead of object refrence
     ship = cursor.slice()
+    // Give feedback to user that this is different from an attack
     music.play(music.createSoundExpression(WaveShape.Sine, 3527, 4126, 255, 255, 500, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
     mode = MODES.ATTACK
 }
 
+/**
+ * Send object serialized in JSON format over radio.
+ * Chunks message into parts if over MAX_PACKET_LENGTH.
+ * @param {any} obj Object to be sent over radio
+ */
 function radioSendObject(obj: any) {
     let data = JSON.stringify(obj);
     if (data.length > MAX_PACKET_LENGTH) {
@@ -172,6 +181,10 @@ radio.onReceivedString(function (receivedString) {
     onRadioReceivedObject(receivedObject, [undefined, serialNumber])
 })
 
+/**
+ * @param {any} receivedObject
+ * @param {number[]} props
+ */
 function onRadioReceivedObject(receivedObject: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     if (!receivedObject) {
