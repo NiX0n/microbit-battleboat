@@ -93,7 +93,7 @@ input.onButtonPressed(Button.AB, function () {
             place()
             break
 
-        case MODES.DEFEND_WAIT:
+        case MODES.DEFEND:
             break
 
     }
@@ -105,8 +105,8 @@ input.onButtonPressed(Button.AB, function () {
  * @TODO Remove after turn negotiation implemented
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    mode = MODES.DEFEND_WAIT
-    console.log(`${SERIAL_NUMBER} is in DEFEND_WAIT`)
+    mode = MODES.DEFEND
+    console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
 })
 
 /**
@@ -235,7 +235,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
             break
 
         case MODES.ATTACK_WAIT:
-            if (receivedObject.m != MODES.DEFEND_WAIT) {
+            if (receivedObject.m != MODES.DEFEND) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
@@ -248,20 +248,25 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
             mode = MODES.ATTACK
             break
 
-        case MODES.DEFEND_WAIT:
+        case MODES.DEFEND:
             if (receivedObject.m != MODES.ATTACK) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
-            console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedObject.c) ? 'yes' : 'no'}`)
-            radioSendObject({
-                m: MODES.DEFEND_WAIT,
-                h: isHit(receivedObject.c),
-                c: receivedObject.c
-            })
-            console.log(`${SERIAL_NUMBER} sent attack response`)
+            onReceivedAttack(receivedObject, props)
             break
     }
+}
+
+function onReceivedAttack(receivedObject: any, props: any[]) {
+    let serialNumber = props[RadioPacketProperty.SerialNumber]
+    console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedObject.c) ? 'yes' : 'no'}`)
+    radioSendObject({
+        m: MODES.DEFEND,
+        h: isHit(receivedObject.c),
+        c: receivedObject.c
+    })
+    console.log(`${SERIAL_NUMBER} sent attack response`)
 }
 
 
@@ -292,10 +297,10 @@ function blinkCursor() {
  */
 enum MODES {
     NEW,
+    PLACE,
     ATTACK,
     ATTACK_WAIT,
-    DEFEND_WAIT,
-    PLACE
+    DEFEND
 }
 
 /**
