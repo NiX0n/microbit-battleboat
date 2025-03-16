@@ -56,7 +56,7 @@ function newLedBuffer() {
     for (let x1 = 0; x1 <= LED_BUFFER_WIDTH - 1; x1++) {
         ledBuffer.push([])
         for (let y1 = 0; y1 <= LED_BUFFER_HEIGHT - 1; y1++) {
-            ledBuffer[x1].push(false)
+            ledBuffer[x1].push(defaultLedState)
         }
     }
 }
@@ -268,7 +268,7 @@ function moveCursor(rightDown: boolean) {
  * BLINK! BLINK! BLINK!
  */
 function blinkCursor() {
-    ledBuffer[cursor[0]][cursor[1]] = !ledBuffer[cursor[0]][cursor[1]]
+    ledBuffer[cursor[0]][cursor[1]] = isCursorDisabled ? defaultLedState : !ledBuffer[cursor[0]][cursor[1]]
 }
 
 //
@@ -293,9 +293,12 @@ let LOOP_DELAY = 500
 //
 // Declare dynamic variables
 //
-let mode: number = MODES.NEW
-let cursor: number[] = []
+let mode: MODES = MODES.NEW
 let ship: number[] = []
+let cursor: number[] = []
+let isCursorDisabled: boolean = false
+let ledBuffer: boolean[][] = []
+let defaultLedState = false
 
 /**
  * rxBuffer handles single streams from multiple devices
@@ -303,7 +306,6 @@ let ship: number[] = []
  */
 let rxBuffer: string[] = []
 
-let ledBuffer: boolean[][] = []
 let nPlayers: number = 0
 
 //
