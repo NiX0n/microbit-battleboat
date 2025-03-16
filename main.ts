@@ -21,7 +21,7 @@ function newGame() {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
         // Handshake
-        radio.sendString('null')
+        radioSendObject(null)
         mode = MODES.PLACE
     }
 
@@ -95,7 +95,7 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
 function attack() {
     if(nPlayers > 1)
     {
-        radio.sendString(JSON.stringify({ m: MODES.ATTACK, c: cursor }))
+        radioSendObject({ m: MODES.ATTACK, c: cursor })
         mode = MODES.ATTACK_WAIT
         return
     }
@@ -131,32 +131,64 @@ function place() {
     mode = MODES.ATTACK
 }
 
-// 19 characters max
+function radioSendObject(obj: any) {
+    let data = JSON.stringify(obj);
+    if (data.length > MAX_PACKET_LENGTH) {
+        // If data is too long
+        // Wrap it in control characters
+        data = `\x02${data}\x03`
+    }
+    // Then chunk the string up and send it
+    for (let p = 0; p < data.length; p += MAX_PACKET_LENGTH) {
+        radio.sendString(data.substr(p, MAX_PACKET_LENGTH))
+    }
+}
+
 radio.onReceivedString(function (receivedString) {
-    console.log(`${SERIAL_NUMBER} received string '${receivedString}'`)
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
-    // Is this is a feedback loop?
-    if (serialNumber === SERIAL_NUMBER) {
-        // There's nothing to do
+    console.log(`${SERIAL_NUMBER} received string '${receivedString}'`)
+    // Did we just receive a packet from ourselves?
+    if (serialNumber == SERIAL_NUMBER) {
+        // Ignore it!
         return
     }
+    // Initialize or append to receive buffer
+    rxBuffer[serialNumber] = (rxBuffer[serialNumber] || "") + receivedString
+    // Does the buffer start with an STX control character?
+    if (rxBuffer[serialNumber].charCodeAt(0) == 2) {
+        // Does the buffer end with an ETX control character?
+        if (rxBuffer[serialNumber].charCodeAt(rxBuffer[serialNumber].length - 1) == 3) {
+            // We're done; so we can strip the control characters off
+            rxBuffer[serialNumber] = rxBuffer[serialNumber].slice(1, -1)
+        }
+        else {
+            // We're NOT done; so don't parse and callback yet
+            return;
+        }
+    }
+    let receivedObject = JSON.parse(rxBuffer[serialNumber])
+    // reset receive buffer
+    rxBuffer[serialNumber] = ''
+    onRadioReceivedObject(receivedObject, [undefined, serialNumber])
+})
 
-    let receivedObject = JSON.parse(receivedString)
-    // Is receivedObject empty?
+function onRadioReceivedObject(receivedObject: any, props: any[]) {
+    let serialNumber = props[RadioPacketProperty.SerialNumber]
     if (!receivedObject) {
-        // There's nothing to do
+        console.log(`${SERIAL_NUMBER} received empty object from ${serialNumber}`)
         return
     }
 
-    // debug stuff
-    console.log({ serialNumber, receivedObject })
-    if (receivedObject.c) {
+    // log() for debugging
+    console.log(receivedObject)
+    if ((receivedObject || {}).c) {
         console.log(receivedObject.c)
     }
 
+
     // switch game mode
     // not to be confused with packet mode
-    switch(mode) {
+    switch (mode) {
         case MODES.ATTACK:
             console.log(`${SERIAL_NUMBER} in attack mode for some reason`)
             break
@@ -168,29 +200,29 @@ radio.onReceivedString(function (receivedString) {
             }
             console.log(`${SERIAL_NUMBER} attack success? ${receivedObject.h ? 'yes' : 'no'}`)
             notifyAttack(receivedObject.h)
-            if(receivedObject.h)
-            {
+            if (receivedObject.h) {
                 newGame()
+                break
             }
             mode = MODES.ATTACK
             break
-            
+
         case MODES.DEFEND_WAIT:
-            if(receivedObject.m != MODES.ATTACK)
-            {
+            if (receivedObject.m != MODES.ATTACK) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
             console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedObject.c) ? 'yes' : 'no'}`)
-            radio.sendString(JSON.stringify({ 
-                m: MODES.DEFEND_WAIT, 
-                h: isHit(receivedObject.c), 
-                c: receivedObject.c 
-            }))
+            radioSendObject({
+                m: MODES.DEFEND_WAIT,
+                h: isHit(receivedObject.c),
+                c: receivedObject.c
+            })
             console.log(`${SERIAL_NUMBER} sent attack response`)
             break
     }
-})
+}
+
 
 /**
  * Move cusor right or down
@@ -225,6 +257,7 @@ let LED_BUFFER_WIDTH = 5
 let LED_BUFFER_HEIGHT = 5
 let RADIO_GROUP = 3
 let SERIAL_NUMBER: number = control.deviceSerialNumber()
+let MAX_PACKET_LENGTH: number = 19
 let LOOP_DELAY = 500
 
 
@@ -234,6 +267,13 @@ let LOOP_DELAY = 500
 let mode: number = MODES.NEW
 let cursor: number[] = []
 let ship: number[] = []
+
+/**
+ * rxBuffer handles single streams from multiple devices
+ * indexed by serial number
+ */
+let rxBuffer: string[] = []
+
 let ledBuffer: boolean[][] = []
 let nPlayers: number = 0
 
