@@ -246,12 +246,12 @@ function blinkCursor() {
 // Declare pseudo-constants
 //
 
-let MODES = {
-    NEW: 0,
-    ATTACK: 1,
-    ATTACK_WAIT: 2,
-    DEFEND_WAIT: 3,
-    PLACE: 4
+enum MODES {
+    NEW,
+    ATTACK,
+    ATTACK_WAIT,
+    DEFEND_WAIT,
+    PLACE
 }
 let LED_BUFFER_WIDTH = 5
 let LED_BUFFER_HEIGHT = 5
