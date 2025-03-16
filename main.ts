@@ -133,6 +133,7 @@ function place() {
 
 // 19 characters max
 radio.onReceivedString(function (receivedString) {
+    console.log(`${SERIAL_NUMBER} received string '${receivedString}'`)
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
     // Is this is a feedback loop?
     if (serialNumber === SERIAL_NUMBER) {
@@ -157,18 +158,23 @@ radio.onReceivedString(function (receivedString) {
     // not to be confused with packet mode
     switch(mode) {
         case MODES.ATTACK:
+            console.log(`${SERIAL_NUMBER} in attack mode for some reason`)
             break
+
         case MODES.ATTACK_WAIT:
             if (receivedObject.m != MODES.DEFEND_WAIT) {
                 console.error(`receivedObject has invalid mode`)
                 return
             }
+            console.log(`${SERIAL_NUMBER} attack success? ${receivedObject.h ? 'yes' : 'no'}`)
             notifyAttack(receivedObject.h)
             if(receivedObject.h)
             {
                 newGame()
             }
+            mode = MODES.ATTACK
             break
+            
         case MODES.DEFEND_WAIT:
             if(receivedObject.m != MODES.ATTACK)
             {
@@ -181,6 +187,7 @@ radio.onReceivedString(function (receivedString) {
                 h: isHit(receivedObject.c), 
                 c: receivedObject.c 
             }))
+            console.log(`${SERIAL_NUMBER} sent attack response`)
             break
     }
 })
