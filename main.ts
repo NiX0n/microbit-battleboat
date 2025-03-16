@@ -253,22 +253,22 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
     }
 }
 
-function onReceivedAttack(receivedObject: any, props: any[]) {
+function onReceivedAttack(receivedAttack: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
-    console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedObject.c) ? 'yes' : 'no'}`)
+    console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedAttack.c) ? 'yes' : 'no'}`)
     radioSendObject({
         m: MODES.DEFEND,
-        h: isHit(receivedObject.c),
-        c: receivedObject.c
+        h: isHit(receivedAttack.c),
+        c: receivedAttack.c
     })
     console.log(`${SERIAL_NUMBER} sent attack response`)
 }
 
-function onReceivedDefend(receivedObject: any, props: any[]) {
+function onReceivedDefend(receivedDefense: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
-    console.log(`${SERIAL_NUMBER} attack success? ${receivedObject.h ? 'yes' : 'no'}`)
-    notifyAttack(receivedObject.h)
-    if (receivedObject.h) {
+    console.log(`${SERIAL_NUMBER} attack success? ${receivedDefense.h ? 'yes' : 'no'}`)
+    notifyAttack(receivedDefense.h)
+    if (receivedDefense.h) {
         newGame()
         return
     }
