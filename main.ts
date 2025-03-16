@@ -106,6 +106,9 @@ input.onButtonPressed(Button.AB, function () {
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     mode = MODES.DEFEND
+    defaultLedState = true
+    isCursorDisabled = true
+    newLedBuffer()
     console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
 })
 
@@ -283,6 +286,9 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
  *      true: down
  */
 function moveCursor(rightDown: boolean) {
+    if (isCursorDisabled) { 
+        return
+    }
     ledBuffer[cursor[0]][cursor[1]] = defaultLedState
     cursor[rightDown ? 0 : 1] = (cursor[rightDown ? 0 : 1] + 1) % (rightDown ? ledBuffer.length : ledBuffer[0].length)
 }
