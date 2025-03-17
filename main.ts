@@ -167,7 +167,7 @@ function notifyPlayerJoin() {
  * Attack opponent
  */
 function attack() {
-    if (players.length) {
+    if (players.length > 1) {
         radioSendObject({ m: MODES.ATTACK, c: cursor })
         mode = MODES.ATTACK_WAIT
         return
