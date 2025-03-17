@@ -19,9 +19,10 @@
 function newGame() {
     newLedBuffer()
     cursor = [0, 0]
+    rochambeau = randint(0, 2 ** 32)
 
     // Is this a multiplayer game?
-    if (nPlayers > 1) {
+    if (players.length > 1) {
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
         // Handshake
@@ -73,6 +74,20 @@ function renderLedBuffer() {
     }
 }
 
+function enableRadio(isEnabled: boolean = true)
+{
+    if(isEnabled)
+    {
+        radio.on()
+        radio.setTransmitSerialNumber(true)
+        radio.setGroup(RADIO_GROUP)
+    }
+    else
+    {
+        radio.off()
+    }
+}
+
 input.onButtonPressed(Button.A, function () {
     // Move right
     moveCursor(true)
@@ -95,9 +110,7 @@ input.onButtonPressed(Button.AB, function () {
 
         case MODES.DEFEND:
             break
-
     }
-
 })
 
 /**
@@ -105,30 +118,43 @@ input.onButtonPressed(Button.AB, function () {
  * @TODO Remove after turn negotiation implemented
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    if (nPlayers > 1 || players.length > 1) {
+    /*if (nPlayers > 1 || players.length > 1) {
         mode = MODES.DEFEND
         defaultLedState = true
         isCursorDisabled = true
         newLedBuffer()
         console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
         return
-    }
+    }*/
 
     if (mode != MODES.JOIN) {
         mode = MODES.JOIN
+        enableRadio()
         defaultLedState = true
         isCursorDisabled = true
+        newLedBuffer()
         music.play(music.stringPlayable("D C F - - - - - ", 240), music.PlaybackMode.UntilDone)
         notifyPlayerJoin()
     }
     else {
         music.play(music.stringPlayable("F D C - - - - - ", 240), music.PlaybackMode.UntilDone)
-        defaultLedState = true
+        defaultLedState = false
         isCursorDisabled = false
+
+        if(players.length < 2)
+        {
+            enableRadio(false)
+        }
+
         newGame()
     }
 
 })
+
+function sendJoin()
+{
+    radioSendObject({m:MODES.JOIN,r:rochambeau})
+}
 
 function notifyPlayerJoin() {
     for (let j = 0; j < players.length; j++) {
@@ -145,9 +171,12 @@ function attack() {
         mode = MODES.ATTACK_WAIT
         return
     }
-
-    notifyAttack(isHit(cursor))
-    newGame()
+    let isHitted = isHit(cursor)
+    notifyAttack(isHitted)
+    if(isHitted)
+    {
+        newGame()
+    }
 }
 
 /**
@@ -261,7 +290,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
 
         case MODES.DEFEND:
             if (receivedObject.m != MODES.ATTACK) {
-                console.error(`receivedObject has invalid mode`)
+                console.error(`receivedObject not in ATTACK mode`)
                 return
             }
             onReceivedAttack(receivedObject, props)
@@ -269,10 +298,18 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
 
         case MODES.ATTACK_WAIT:
             if (receivedObject.m != MODES.DEFEND) {
-                console.error(`receivedObject has invalid mode`)
+                console.error(`receivedObject not in DEFEND mode`)
                 return
             }
             onReceivedDefend(receivedObject, props)
+            break
+        
+        case MODES.JOIN:
+            if (receivedObject.m != MODES.JOIN) {
+                console.error(`receivedObject not in JOIN mode`)
+                return
+            }
+            onReceivedJoin(receivedObject, props)
             break
     }
 }
@@ -297,6 +334,20 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
         return
     }
     mode = MODES.ATTACK
+}
+
+function onReceivedJoin(receivedDefense: any, props: any[]) {
+    let serialNumber = props[RadioPacketProperty.SerialNumber]
+    // For some reason this JavaScript implementation doesn't have Array.prototype.includes()
+    if (players.indexOf(serialNumber) > -1)
+    {
+        // Player has already been registered
+        return
+    }
+
+    console.log(`${SERIAL_NUMBER} received JOIN from ${serialNumber}`)
+    players.push(serialNumber)
+    notifyPlayerJoin()
 }
 
 
@@ -419,6 +470,8 @@ let nPlayers: number = 1
  */
 let players = [SERIAL_NUMBER]
 
+let rochambeau: number = 0
+
 // #endregion
 
 //
@@ -431,7 +484,16 @@ newGame()
  * Loop mostly drives LEDs
  */
 basic.forever(function () {
-    blinkCursor()
-    renderLedBuffer()
-    basic.pause(LOOP_DELAY)
+    switch (mode)
+    {
+        case MODES.JOIN:
+            sendJoin()
+            basic.pause(5000)
+            break
+            
+        default:
+            blinkCursor()
+            renderLedBuffer()
+            basic.pause(LOOP_DELAY)
+    }
 })
