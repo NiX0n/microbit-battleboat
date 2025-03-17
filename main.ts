@@ -31,7 +31,7 @@ function newGame() {
         // skip the rest
         return
     }
-    
+
     // This is a single player game
 
     // Randomly place ship
@@ -105,22 +105,42 @@ input.onButtonPressed(Button.AB, function () {
  * @TODO Remove after turn negotiation implemented
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    if(nPlayers > 1 || players.length > 1)
-    {
+    if (nPlayers > 1 || players.length > 1) {
         mode = MODES.DEFEND
         defaultLedState = true
         isCursorDisabled = true
         newLedBuffer()
         console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
+        return
     }
+
+    if (mode != MODES.JOIN) {
+        mode = MODES.JOIN
+        defaultLedState = true
+        isCursorDisabled = true
+        music.play(music.stringPlayable("D C F - - - - - ", 240), music.PlaybackMode.UntilDone)
+        notifyPlayerJoin()
+    }
+    else {
+        music.play(music.stringPlayable("F D C - - - - - ", 240), music.PlaybackMode.UntilDone)
+        defaultLedState = true
+        isCursorDisabled = false
+        newGame()
+    }
+
 })
+
+function notifyPlayerJoin() {
+    for (let j = 0; j < players.length; j++) {
+        music._playDefaultBackground(music.builtInPlayableMelody(Melodies.BaDing), music.PlaybackMode.InBackground)
+    }
+}
 
 /**
  * Attack opponent
  */
 function attack() {
-    if(nPlayers > 1)
-    {
+    if (nPlayers > 1) {
         radioSendObject({ m: MODES.ATTACK, c: cursor })
         mode = MODES.ATTACK_WAIT
         return
@@ -134,8 +154,7 @@ function attack() {
  * Is this the location of the ship?
  * @param {number[2]} location
  */
-function isHit(location: number[])
-{
+function isHit(location: number[]) {
     return location[0] == ship[0] && location[1] == ship[1]
 }
 
@@ -143,8 +162,7 @@ function isHit(location: number[])
  * Let the user know that there's been an attack
  * @param {boolean} isHitted whether the attack was successful
  */
-function notifyAttack(isHitted: boolean)
-{
+function notifyAttack(isHitted: boolean) {
     music.play(music.createSoundExpression(WaveShape.Sine, 5000, 979, 255, 255, 2000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
     if (isHitted) {
         // hit
@@ -289,7 +307,7 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
  *      true: down
  */
 function moveCursor(rightDown: boolean) {
-    if (isCursorDisabled) { 
+    if (isCursorDisabled) {
         return
     }
     ledBuffer[cursor[0]][cursor[1]] = defaultLedState
