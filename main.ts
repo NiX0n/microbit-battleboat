@@ -19,7 +19,7 @@
 function newGame() {
     newLedBuffer()
     cursor = [0, 0]
-    rochambeau = randint(0, 2 ** 32)
+    rochambeau[SERIAL_NUMBER] = randint(0, 2 ** 32)
 
     // Is this a multiplayer game?
     if (players.length > 1) {
@@ -337,7 +337,7 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
     mode = MODES.ATTACK
 }
 
-function onReceivedJoin(receivedDefense: any, props: any[]) {
+function onReceivedJoin(receivedJoin: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     // For some reason this JavaScript implementation doesn't have Array.prototype.includes()
     if (players.indexOf(serialNumber) > -1)
@@ -348,6 +348,7 @@ function onReceivedJoin(receivedDefense: any, props: any[]) {
 
     console.log(`${SERIAL_NUMBER} received JOIN from ${serialNumber}`)
     players.push(serialNumber)
+    rochambeau[serialNumber] = receivedJoin.r
     notifyPlayerJoin()
 }
 
@@ -461,17 +462,14 @@ let defaultLedState = false
 let rxBuffer: string[] = []
 
 /**
- * Number of Players
- * @TODO Replace hard value w/ user input
- */
-let nPlayers: number = 1
-
-/**
  * List of player device serial numbers
  */
 let players = [SERIAL_NUMBER]
 
-let rochambeau: number = 0
+/**
+ * Random numbers that decide who goes first
+ */
+let rochambeau: any = {}
 
 // #endregion
 

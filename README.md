@@ -7,16 +7,29 @@ An implementation of the classic [Battleship game](https://en.wikipedia.org/wiki
 Sink your opponent's boat.
 
 ## Gameplay
-1. Start a multi-player game by selecting the placement of your battleboat.
-2. Take turns firing on your opponent's ship
 
 #### Controls
 
-| Input   | Action           |
-| ------- | ---------------- |
-|  **A**  | Move Cusor Right |
-|  **B**  | Move Cusor Down  |
-| **A+B** | Place Ship/FIRE! |
+| Input     | Action           |
+| --------- | ---------------- |
+| **Reset** | Reset Game |
+| **Logo**  | Start/Stop Join Mode |
+|  **A**    | Move Cusor Right |
+|  **B**    | Move Cusor Down  |
+| **A+B**   | Place Ship/FIRE! |
+
+### Single Player Game
+By default, when the device is reset, the game is in 1P mode.
+
+1. A ship is randomly placed on the board
+2. Hunt and fire on the ship
+
+### Multi-Player Game
+1. Press **Logo** to start JOIN for all players
+2. Listen for notification for each player joined
+3. Start each game by selecting the placement of your battleboat.
+4. Take turns firing on your opponent's ship
+
 
 ## Hardware Requirements
  * A [BBC Micro:bit v2](https://en.wikipedia.org/wiki/Micro_Bit)
