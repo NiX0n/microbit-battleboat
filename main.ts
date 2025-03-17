@@ -126,6 +126,7 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
         console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
         return
     }*/
+    console.log(`${SERIAL_NUMBER} logo pressed in mode=${mode}`)
 
     if (mode != MODES.JOIN) {
         mode = MODES.JOIN
@@ -166,7 +167,7 @@ function notifyPlayerJoin() {
  * Attack opponent
  */
 function attack() {
-    if (nPlayers > 1) {
+    if (players.length) {
         radioSendObject({ m: MODES.ATTACK, c: cursor })
         mode = MODES.ATTACK_WAIT
         return
@@ -488,7 +489,8 @@ basic.forever(function () {
     {
         case MODES.JOIN:
             sendJoin()
-            basic.pause(5000)
+            renderLedBuffer()
+            basic.pause(4500)
             break
             
         default:
