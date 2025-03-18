@@ -3,13 +3,11 @@
  * 
  * @TODO
  * - Add defend wait mode/UX
- * - Add turn negotiation
- * - Add turn cycle
  * - Add audio on newGame()/place mode
  * - Add audio on 2p+ turn start
  * - Add blink hold on fire sequence, etc
- * - Add user-switchable nPlayers
  * - Add user-switchable radio group
+ * - Add test for all ships placed
  */
 
 /**
@@ -26,6 +24,9 @@ function newGame() {
     if (players.length > 1) {
         enableRadio()
         mode = MODES.PLACE
+        defaultLedState = false
+        isCursorDisabled = false
+        newLedBuffer()
 
         // skip the rest
         return
@@ -348,7 +349,8 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
 
 function onReceivedAttack(receivedAttack: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
-    console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedAttack.c) ? 'yes' : 'no'}`)
+    let isHitted = isHit(receivedAttack.c)
+    console.log(`${SERIAL_NUMBER} is hit? ${isHitted ? 'yes' : 'no'}`)
     if (players[playerTurn] !== serialNumber)
     {
         // We're not going to do anything about it right now
@@ -358,13 +360,18 @@ function onReceivedAttack(receivedAttack: any, props: any[]) {
 
     radioSendObject({
         m: MODES.DEFEND,
-        h: isHit(receivedAttack.c),
+        h: isHitted,
         c: receivedAttack.c
     })
     console.log(`${SERIAL_NUMBER} sent attack response`)
 
     // @TODO notifyAttack()
-    nextTurn()
+    if(isHitted) {
+        newGame()
+    }
+    else {
+        nextTurn()
+    }
 }
 
 function onReceivedDefend(receivedDefense: any, props: any[]) {
