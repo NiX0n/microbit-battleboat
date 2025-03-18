@@ -18,17 +18,33 @@ Sink your opponent's boat.
 |  **B**    | Move Cusor Down  |
 | **A+B**   | Place Ship/FIRE! |
 
-### Single Player Game
+### Single Player (1P) Game
 By default, when the device is reset, the game is in 1P mode.
 
 1. A ship is randomly placed on the board
 2. Hunt and fire on the ship
+3. Press **A** OR **B** button to choose your target
+4. Press **A** AND **B** buttons at the same time to FIRE!
 
-### Multi-Player Game
+
+### Multi-Player (2P/MP) Game
+In theory any number of players can play together.  This game has only been tested with two players.
+
+#### Joining Players
 1. Press **Logo** to start JOIN for all players
 2. Listen for notification for each player joined
-3. Start each game by selecting the placement of your battleboat.
-4. Take turns firing on your opponent's ship
+3. Press **Logo** again once all players have joined
+
+**Note**: This will end your 1P game.  If you wish to go back to a 1P game, simply **Reset** the device.
+
+**Known Bug**: Occasionally one of the devices will fail on step #3.  If this happens, simply restart the devices and try again.
+
+#### Playing
+1. Start each game by selecting the placement of your battleboat. (See: Controls)
+2. A player is randomly chosen to go first attacking, while the other(s) go on defense
+3. Take turns firing on your opponent's ship.   (See: Controls)
+4. The player who sinks their opponent's ship wins
+5. Start a new game.  Winner goes first
 
 
 ## Hardware Requirements
