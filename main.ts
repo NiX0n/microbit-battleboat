@@ -19,14 +19,12 @@
 function newGame() {
     newLedBuffer()
     cursor = [0, 0]
+    // roll a giant dice to decide who goes first
     rochambeau[SERIAL_NUMBER] = randint(0, 2 ** 32)
 
     // Is this a multiplayer game?
     if (players.length > 1) {
-        radio.setTransmitSerialNumber(true)
-        radio.setGroup(RADIO_GROUP)
-        // Handshake
-        radioSendObject(null)
+        enableRadio()
         mode = MODES.PLACE
 
         // skip the rest
@@ -42,6 +40,23 @@ function newGame() {
 
     // @TODO DELETEME
     console.log(`Hint: ${JSON.stringify(ship)}`)
+}
+
+function nextTurn(step: number = 1)
+{
+    playerTurn = (playerTurn + step) % players.length
+    if (players[playerTurn] === SERIAL_NUMBER) {
+        mode = MODES.ATTACK
+        defaultLedState = false
+        isCursorDisabled = false
+        newLedBuffer()
+    }
+    else {
+        mode = MODES.DEFEND
+        defaultLedState = true
+        isCursorDisabled = true
+        newLedBuffer()
+    }
 }
 
 /**
@@ -128,6 +143,7 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     }*/
     console.log(`${SERIAL_NUMBER} logo pressed in mode=${mode}`)
 
+    // @TODO Move into other functions
     if (mode != MODES.JOIN) {
         mode = MODES.JOIN
         enableRadio()
@@ -142,7 +158,19 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
         defaultLedState = false
         isCursorDisabled = false
 
-        if(players.length < 2)
+        if(players.length > 1)
+        {
+            players = players.sort((a, b) => {
+                if(rochambeau[a] === rochambeau[b])
+                {
+                    // highly improbable condition 1/2^32
+                    // fall back to who's is "younger"
+                    return a < b ? -1 : 1
+                }
+                return rochambeau[a] < rochambeau[b] ? -1 : 1
+            })
+        }
+        else
         {
             enableRadio(false)
         }
@@ -154,7 +182,7 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
 
 function sendJoin()
 {
-    radioSendObject({m:MODES.JOIN,r:rochambeau})
+    radioSendObject({m:MODES.JOIN,r:rochambeau[SERIAL_NUMBER]})
 }
 
 function notifyPlayerJoin() {
@@ -214,7 +242,10 @@ function place() {
     ship = cursor.slice()
     // Give feedback to user that this is different from an attack
     music.play(music.createSoundExpression(WaveShape.Sine, 3527, 4126, 255, 255, 500, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    mode = MODES.ATTACK
+    // don't advance player turn
+    // just set up first turn
+    // this may also have the added feature of keeping the winner's turn
+    nextTurn(0)
 }
 
 /**
@@ -318,12 +349,22 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
 function onReceivedAttack(receivedAttack: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     console.log(`${SERIAL_NUMBER} is hit? ${isHit(receivedAttack.c) ? 'yes' : 'no'}`)
+    if (players[playerTurn] !== serialNumber)
+    {
+        // We're not going to do anything about it right now
+        // @TODO Better handling
+        console.error(`${SERIAL_NUMBER} was attacked by ${serialNumber} out of turn`)
+    }
+
     radioSendObject({
         m: MODES.DEFEND,
         h: isHit(receivedAttack.c),
         c: receivedAttack.c
     })
     console.log(`${SERIAL_NUMBER} sent attack response`)
+
+    // @TODO notifyAttack()
+    nextTurn()
 }
 
 function onReceivedDefend(receivedDefense: any, props: any[]) {
@@ -334,7 +375,7 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
         newGame()
         return
     }
-    mode = MODES.ATTACK
+    nextTurn()
 }
 
 function onReceivedJoin(receivedJoin: any, props: any[]) {
@@ -465,6 +506,11 @@ let rxBuffer: string[] = []
  * List of player device serial numbers
  */
 let players = [SERIAL_NUMBER]
+
+/**
+ * Index of players current player
+ */
+let playerTurn = 0
 
 /**
  * Random numbers that decide who goes first
