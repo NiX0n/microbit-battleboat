@@ -2,9 +2,6 @@
  * https://github.com/NiX0n/microbit-battleboat
  * 
  * @TODO
- * - Add defend wait mode/UX
- * - Add audio on newGame()/place mode
- * - Add audio on 2p+ turn start
  * - Add blink hold on fire sequence, etc
  * - Add user-switchable radio group
  * - Add test for all ships placed
@@ -15,6 +12,7 @@
  * Reset game environment back to initial state.
  */
 function newGame() {
+    music._playDefaultBackground(music.builtInPlayableMelody(Melodies.JumpUp), music.PlaybackMode.UntilDone)
     newLedBuffer()
     cursor = [0, 0]
     // roll a giant dice to decide who goes first
@@ -47,6 +45,7 @@ function nextTurn(step: number = 1)
 {
     playerTurn = (playerTurn + step) % players.length
     if (players[playerTurn] === SERIAL_NUMBER) {
+        music.play(music.builtinPlayableSoundEffect(soundExpression.hello), music.PlaybackMode.UntilDone)
         mode = MODES.ATTACK
         defaultLedState = false
         isCursorDisabled = false
@@ -97,6 +96,7 @@ function enableRadio(isEnabled: boolean = true)
         radio.on()
         radio.setTransmitSerialNumber(true)
         radio.setGroup(RADIO_GROUP)
+        radio.setTransmitPower(RADIO_TX_POWER)
     }
     else
     {
@@ -268,8 +268,8 @@ function radioSendObject(obj: any) {
 }
 
 radio.onReceivedString(function (receivedString) {
-    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
-    console.log(`${SERIAL_NUMBER} received string '${receivedString}'`)
+    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber).toString()
+    console.log(`${SERIAL_NUMBER}->${serialNumber} received string '${receivedString}'`)
     // Did we just receive a packet from ourselves?
     if (serialNumber == SERIAL_NUMBER) {
         // Ignore it!
@@ -279,8 +279,10 @@ radio.onReceivedString(function (receivedString) {
     rxBuffer[serialNumber] = (rxBuffer[serialNumber] || "") + receivedString
     // Does the buffer start with an STX control character?
     if (rxBuffer[serialNumber].charCodeAt(0) == 2) {
+        console.log(`${SERIAL_NUMBER} received chunk`)
         // Does the buffer end with an ETX control character?
         if (rxBuffer[serialNumber].charCodeAt(rxBuffer[serialNumber].length - 1) == 3) {
+            console.log(`${SERIAL_NUMBER} received last chunk`)
             // We're done; so we can strip the control characters off
             rxBuffer[serialNumber] = rxBuffer[serialNumber].slice(1, -1)
         }
@@ -451,12 +453,17 @@ let LED_BUFFER_HEIGHT = 5
 /**
  * Radio Group must be same as other players
  */
-let RADIO_GROUP = 3
+let RADIO_GROUP = 127
+
+/**
+ * Radio Transmit Power
+ */
+let RADIO_TX_POWER = 7
 
 /**
  * This device's serial number
  */
-let SERIAL_NUMBER: number = control.deviceSerialNumber()
+let SERIAL_NUMBER: string = control.deviceSerialNumber().toString()
 
 /**
  * Maximum string length supported by radio.sendString()
@@ -507,7 +514,7 @@ let defaultLedState = false
  * rxBuffer handles single streams from multiple devices
  * indexed by serial number
  */
-let rxBuffer: string[] = []
+let rxBuffer: { [key: string]: string } = {}
 
 /**
  * List of player device serial numbers
@@ -522,7 +529,7 @@ let playerTurn = 0
 /**
  * Random numbers that decide who goes first
  */
-let rochambeau: any = {}
+let rochambeau: { [key: string]: number } = {}
 
 // #endregion
 
