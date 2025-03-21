@@ -4,7 +4,8 @@
  * @TODO
  * - Add blink hold on fire sequence, etc
  * - Add user-switchable radio group
- * - Add test for all ships placed
+ * - Add wait for all ships placed
+ * - Add history of attacks
  */
 
 /**
@@ -41,9 +42,18 @@ function newGame() {
     console.log(`Hint: ${JSON.stringify(ship)}`)
 }
 
+/**
+ * Proceed to the next turn
+ * @param {number} step (default: 1) 
+ *      Supports skips and/or player keeping turn.
+ *      By defautlt, proceed to the next player in list.
+ *      Wrap around player list in loop.
+ */
 function nextTurn(step: number = 1)
 {
+    // using modulo to wrap around
     playerTurn = (playerTurn + step) % players.length
+    // Is it our turn?
     if (players[playerTurn] === SERIAL_NUMBER) {
         music.play(music.builtinPlayableSoundEffect(soundExpression.hello), music.PlaybackMode.UntilDone)
         mode = MODES.ATTACK
@@ -51,6 +61,7 @@ function nextTurn(step: number = 1)
         isCursorDisabled = false
         newLedBuffer()
     }
+    // It's somebody else's turn
     else {
         mode = MODES.DEFEND
         defaultLedState = true
@@ -89,6 +100,10 @@ function renderLedBuffer() {
     }
 }
 
+/**
+ * Initialize and enable or disable radio
+ * @param {boolean} isEnabled
+ */
 function enableRadio(isEnabled: boolean = true)
 {
     if(isEnabled)
@@ -114,6 +129,9 @@ input.onButtonPressed(Button.B, function () {
     moveCursor(false)
 })
 
+/**
+ * Cursor Select
+ */
 input.onButtonPressed(Button.AB, function () {
     switch (mode) {
         case MODES.ATTACK:
@@ -130,18 +148,9 @@ input.onButtonPressed(Button.AB, function () {
 })
 
 /**
- * We need some way to put one of the devices in this mode for debugging
- * @TODO Remove after turn negotiation implemented
+ * Start/Stop JOIN mode
  */
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    /*if (nPlayers > 1 || players.length > 1) {
-        mode = MODES.DEFEND
-        defaultLedState = true
-        isCursorDisabled = true
-        newLedBuffer()
-        console.log(`${SERIAL_NUMBER} is in DEFEND mode`)
-        return
-    }*/
     console.log(`${SERIAL_NUMBER} logo pressed in mode=${mode}`)
 
     // @TODO Move into other functions
@@ -181,11 +190,23 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
 
 })
 
+/**
+ * Send JOIN packet to other players
+ */
 function sendJoin()
 {
-    radioSendObject({m:MODES.JOIN,r:rochambeau[SERIAL_NUMBER]})
+    radioSendObject({
+        m: MODES.JOIN,
+        // include our random number that will
+        // decide who will take their turn first
+        // notably without any further negotiation
+        r: rochambeau[SERIAL_NUMBER]
+    })
 }
 
+/**
+ * Let user know how many players have JOINed the game
+ */
 function notifyPlayerJoin() {
     for (let j = 0; j < players.length; j++) {
         music._playDefaultBackground(music.builtInPlayableMelody(Melodies.BaDing), music.PlaybackMode.InBackground)
@@ -269,7 +290,7 @@ function radioSendObject(obj: any) {
 
 radio.onReceivedString(function (receivedString) {
     let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber).toString()
-    console.log(`${SERIAL_NUMBER}->${serialNumber} received string '${receivedString}'`)
+    //console.log(`${SERIAL_NUMBER}->${serialNumber} received string '${receivedString}'`)
     // Did we just receive a packet from ourselves?
     if (serialNumber == SERIAL_NUMBER) {
         // Ignore it!
@@ -279,10 +300,8 @@ radio.onReceivedString(function (receivedString) {
     rxBuffer[serialNumber] = (rxBuffer[serialNumber] || "") + receivedString
     // Does the buffer start with an STX control character?
     if (rxBuffer[serialNumber].charCodeAt(0) == 2) {
-        console.log(`${SERIAL_NUMBER} received chunk`)
         // Does the buffer end with an ETX control character?
         if (rxBuffer[serialNumber].charCodeAt(rxBuffer[serialNumber].length - 1) == 3) {
-            console.log(`${SERIAL_NUMBER} received last chunk`)
             // We're done; so we can strip the control characters off
             rxBuffer[serialNumber] = rxBuffer[serialNumber].slice(1, -1)
         }
@@ -304,7 +323,7 @@ radio.onReceivedString(function (receivedString) {
 function onRadioReceivedObject(receivedObject: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     if (!receivedObject) {
-        console.log(`${SERIAL_NUMBER} received empty object from ${serialNumber}`)
+        console.log(`${serialNumber}->${SERIAL_NUMBER} received empty object`)
         return
     }
 
@@ -320,12 +339,12 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
     // then call respective callback
     switch (mode) {
         case MODES.ATTACK:
-            console.log(`${SERIAL_NUMBER} in attack mode for some reason`)
+            console.log(`${serialNumber}->${SERIAL_NUMBER} in attack mode for some reason`)
             break
 
         case MODES.DEFEND:
             if (receivedObject.m != MODES.ATTACK) {
-                console.error(`receivedObject not in ATTACK mode`)
+                console.error(`${serialNumber}->${SERIAL_NUMBER} receivedObject not in ATTACK mode`)
                 return
             }
             onReceivedAttack(receivedObject, props)
@@ -333,7 +352,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
 
         case MODES.ATTACK_WAIT:
             if (receivedObject.m != MODES.DEFEND) {
-                console.error(`receivedObject not in DEFEND mode`)
+                console.error(`${serialNumber}->${SERIAL_NUMBER} receivedObject not in DEFEND mode`)
                 return
             }
             onReceivedDefend(receivedObject, props)
@@ -341,7 +360,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
         
         case MODES.JOIN:
             if (receivedObject.m != MODES.JOIN) {
-                console.error(`receivedObject not in JOIN mode`)
+                console.error(`${serialNumber}->${SERIAL_NUMBER} receivedObject not in JOIN mode`)
                 return
             }
             onReceivedJoin(receivedObject, props)
@@ -349,6 +368,11 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
     }
 }
 
+/**
+ * Handle attack received from other players
+ * @param {any} receivedAttack
+ * @param {any[]} props
+ */
 function onReceivedAttack(receivedAttack: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     let isHitted = isHit(receivedAttack.c)
@@ -376,6 +400,11 @@ function onReceivedAttack(receivedAttack: any, props: any[]) {
     }
 }
 
+/**
+ * Handle defense received back from other players that we attacked
+ * @param {any} receivedAttack
+ * @param {any[]} props
+ */
 function onReceivedDefend(receivedDefense: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     console.log(`${SERIAL_NUMBER} attack success? ${receivedDefense.h ? 'yes' : 'no'}`)
@@ -387,6 +416,13 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
     nextTurn()
 }
 
+/**
+ * Handle join received from other player.
+ * Add player seriao number to list,
+ * and prepare to Rochambeau for first turn.
+ * @param {any} receivedAttack
+ * @param {any[]} props
+ */
 function onReceivedJoin(receivedJoin: any, props: any[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     // For some reason this JavaScript implementation doesn't have Array.prototype.includes()
@@ -396,7 +432,7 @@ function onReceivedJoin(receivedJoin: any, props: any[]) {
         return
     }
 
-    console.log(`${SERIAL_NUMBER} received JOIN from ${serialNumber}`)
+    console.log(`${serialNumber}->${SERIAL_NUMBER} JOIN`)
     players.push(serialNumber)
     rochambeau[serialNumber] = receivedJoin.r
     notifyPlayerJoin()
