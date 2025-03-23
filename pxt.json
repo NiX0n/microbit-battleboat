@@ -10,8 +10,7 @@
     "files": [
         "main.blocks",
         "main.ts",
-        "README.md",
-        "radio.ts"
+        "README.md"
     ],
     "testFiles": [
         "test.ts"
