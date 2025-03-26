@@ -5,7 +5,8 @@
     "dependencies": {
         "core": "*",
         "radio": "*",
-        "microphone": "*"
+        "microphone": "*",
+        "RadioSendObject": "github:NiX0n/microbit-radio-send-object#1effa3a845ffbdc8f91928d03fbc14199697396c"
     },
     "files": [
         "main.blocks",

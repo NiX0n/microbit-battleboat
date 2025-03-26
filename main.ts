@@ -195,7 +195,7 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
  */
 function sendJoin()
 {
-    radioSendObject({
+    radio.sendObject({
         m: MODES.JOIN,
         // include our random number that will
         // decide who will take their turn first
@@ -218,7 +218,7 @@ function notifyPlayerJoin() {
  */
 function attack() {
     if (players.length > 1) {
-        radioSendObject({ m: MODES.ATTACK, c: cursor })
+        radio.sendObject({ m: MODES.ATTACK, c: cursor })
         mode = MODES.ATTACK_WAIT
         return
     }
@@ -271,56 +271,10 @@ function place() {
 }
 
 /**
- * Send object serialized in JSON format over radio.
- * Chunks message into parts if over MAX_PACKET_LENGTH.
- * @param {any} obj Object to be sent over radio
- */
-function radioSendObject(obj: any) {
-    let data = JSON.stringify(obj);
-    if (data.length > MAX_PACKET_LENGTH) {
-        // If data is too long
-        // Wrap it in control characters
-        data = `\x02${data}\x03`
-    }
-    // Then chunk the string up and send it
-    for (let p = 0; p < data.length; p += MAX_PACKET_LENGTH) {
-        radio.sendString(data.substr(p, MAX_PACKET_LENGTH))
-    }
-}
-
-radio.onReceivedString(function (receivedString) {
-    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
-    //console.log(`${SERIAL_NUMBER}->${serialNumber} received string '${receivedString}'`)
-    // Did we just receive a packet from ourselves?
-    if (serialNumber == SERIAL_NUMBER) {
-        // Ignore it!
-        return
-    }
-    // Initialize or append to receive buffer
-    rxBuffer[serialNumber] = (rxBuffer[serialNumber] || "") + receivedString
-    // Does the buffer start with an STX control character?
-    if (rxBuffer[serialNumber].charCodeAt(0) == 2) {
-        // Does the buffer end with an ETX control character?
-        if (rxBuffer[serialNumber].charCodeAt(rxBuffer[serialNumber].length - 1) == 3) {
-            // We're done; so we can strip the control characters off
-            rxBuffer[serialNumber] = rxBuffer[serialNumber].slice(1, -1)
-        }
-        else {
-            // We're NOT done; so don't parse and callback yet
-            return;
-        }
-    }
-    let receivedObject = JSON.parse(rxBuffer[serialNumber])
-    // reset receive buffer
-    rxBuffer[serialNumber] = ''
-    onRadioReceivedObject(receivedObject, [undefined, serialNumber])
-})
-
-/**
  * @param {any} receivedObject
  * @param {number[]} props
  */
-function onRadioReceivedObject(receivedObject: any, props: number[]) {
+radio.onReceivedObject(function(receivedObject: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     if (!receivedObject) {
         console.log(`${serialNumber}->${SERIAL_NUMBER} received empty object`)
@@ -366,7 +320,7 @@ function onRadioReceivedObject(receivedObject: any, props: number[]) {
             onReceivedJoin(receivedObject, props)
             break
     }
-}
+});
 
 /**
  * Handle attack received from other players
@@ -384,7 +338,7 @@ function onReceivedAttack(receivedAttack: any, props: number[]) {
         console.error(`${SERIAL_NUMBER} was attacked by ${serialNumber} out of turn`)
     }
 
-    radioSendObject({
+    radio.sendObject({
         m: MODES.DEFEND,
         h: isHitted,
         c: receivedAttack.c
@@ -500,11 +454,6 @@ let RADIO_TX_POWER = 7
  * This device's serial number
  */
 let SERIAL_NUMBER: number = control.deviceSerialNumber()
-
-/**
- * Maximum string length supported by radio.sendString()
- */
-let MAX_PACKET_LENGTH: number = 19
 
 /**
  * Refresh rate of LED buffer render
