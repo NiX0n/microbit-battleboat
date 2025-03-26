@@ -496,12 +496,6 @@ let ledBuffer: boolean[][] = []
 let defaultLedState = false
 
 /**
- * rxBuffer handles single streams from multiple devices
- * indexed by serial number
- */
-let rxBuffer: { [key: string]: string } = {}
-
-/**
  * List of player device serial numbers
  */
 let players = [SERIAL_NUMBER]
