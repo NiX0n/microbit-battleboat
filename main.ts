@@ -325,7 +325,7 @@ radio.onReceivedObject(function(receivedObject: any, props: number[]) {
 /**
  * Handle attack received from other players
  * @param {any} receivedAttack
- * @param {any[]} props
+ * @param {number[]} props
  */
 function onReceivedAttack(receivedAttack: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
@@ -357,7 +357,7 @@ function onReceivedAttack(receivedAttack: any, props: number[]) {
 /**
  * Handle defense received back from other players that we attacked
  * @param {any} receivedAttack
- * @param {any[]} props
+ * @param {number[]} props
  */
 function onReceivedDefend(receivedDefense: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
@@ -375,7 +375,7 @@ function onReceivedDefend(receivedDefense: any, props: number[]) {
  * Add player seriao number to list,
  * and prepare to Rochambeau for first turn.
  * @param {any} receivedAttack
- * @param {any[]} props
+ * @param {number[]} props
  */
 function onReceivedJoin(receivedJoin: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]

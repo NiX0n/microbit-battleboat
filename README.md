@@ -51,13 +51,18 @@ In theory any number of players can play together.  This game has only been test
  * A [BBC Micro:bit v2](https://en.wikipedia.org/wiki/Micro_Bit)
  * More BBC Micro:bit v2s for multiple players
 
-## Import this project
+## Import This Project
 
 To import this repository in MakeCode.
 
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
 * paste **https://github.com/nix0n/microbit-battleboat** and click import
+
+## Other
+
+### License
+This code is made available under the [the MIT License](LICENSE).
 
 #### Metadata (used for search, rendering)
 
