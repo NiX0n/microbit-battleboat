@@ -289,7 +289,7 @@ function radioSendObject(obj: any) {
 }
 
 radio.onReceivedString(function (receivedString) {
-    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber).toString()
+    let serialNumber = radio.receivedPacket(RadioPacketProperty.SerialNumber)
     //console.log(`${SERIAL_NUMBER}->${serialNumber} received string '${receivedString}'`)
     // Did we just receive a packet from ourselves?
     if (serialNumber == SERIAL_NUMBER) {
@@ -320,7 +320,7 @@ radio.onReceivedString(function (receivedString) {
  * @param {any} receivedObject
  * @param {number[]} props
  */
-function onRadioReceivedObject(receivedObject: any, props: any[]) {
+function onRadioReceivedObject(receivedObject: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     if (!receivedObject) {
         console.log(`${serialNumber}->${SERIAL_NUMBER} received empty object`)
@@ -373,7 +373,7 @@ function onRadioReceivedObject(receivedObject: any, props: any[]) {
  * @param {any} receivedAttack
  * @param {any[]} props
  */
-function onReceivedAttack(receivedAttack: any, props: any[]) {
+function onReceivedAttack(receivedAttack: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     let isHitted = isHit(receivedAttack.c)
     console.log(`${SERIAL_NUMBER} is hit? ${isHitted ? 'yes' : 'no'}`)
@@ -405,7 +405,7 @@ function onReceivedAttack(receivedAttack: any, props: any[]) {
  * @param {any} receivedAttack
  * @param {any[]} props
  */
-function onReceivedDefend(receivedDefense: any, props: any[]) {
+function onReceivedDefend(receivedDefense: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     console.log(`${SERIAL_NUMBER} attack success? ${receivedDefense.h ? 'yes' : 'no'}`)
     notifyAttack(receivedDefense.h)
@@ -423,7 +423,7 @@ function onReceivedDefend(receivedDefense: any, props: any[]) {
  * @param {any} receivedAttack
  * @param {any[]} props
  */
-function onReceivedJoin(receivedJoin: any, props: any[]) {
+function onReceivedJoin(receivedJoin: any, props: number[]) {
     let serialNumber = props[RadioPacketProperty.SerialNumber]
     // For some reason this JavaScript implementation doesn't have Array.prototype.includes()
     if (players.indexOf(serialNumber) > -1)
@@ -499,7 +499,7 @@ let RADIO_TX_POWER = 7
 /**
  * This device's serial number
  */
-let SERIAL_NUMBER: string = control.deviceSerialNumber().toString()
+let SERIAL_NUMBER: number = control.deviceSerialNumber()
 
 /**
  * Maximum string length supported by radio.sendString()
