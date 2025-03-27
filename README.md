@@ -31,7 +31,6 @@ By default, when the device is reset, the game is in 1P mode.
 3. Press **A** OR **B** button to choose your target
 4. Press **A** AND **B** buttons at the same time to FIRE!
 
-
 ### Multi-Player (2P/MP) Game
 In theory any number of players can play together.  This game has only been tested with two players.
 
@@ -50,7 +49,6 @@ In theory any number of players can play together.  This game has only been test
 3. Take turns firing on your opponent's ship.   (See: Controls)
 4. The player who sinks their opponent's ship wins
 5. Start a new game.  Winner goes first
-
 
 ## Hardware Requirements
  * A [BBC Micro:bit v2](https://en.wikipedia.org/wiki/Micro_Bit)
