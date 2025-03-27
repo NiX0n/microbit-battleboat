@@ -7,7 +7,7 @@ An implementation of the classic [Battleship game](https://en.wikipedia.org/wiki
 Sink your opponent's boat.  
 
 ### Similarities to Battleship
-Game is played similar to Battleship; however, it's distinct in that it is only played on a 5x5 grid as opposed to 10x10 in the original.  Because of this limited space, to maintain a statistical challenge, only one ship is placed per player per game as opposed to 10 ships in the original.
+Game is played similar to Battleship, however it's distinct in that it is only played on a 5x5 grid; as opposed to 10x10 in the original.  Because of this limited space, to maintain a statistical challenge, only one 1x1 ship is placed per player per game; as opposed to 10 variable length ships in the original.
 
 Specifically, the odds of any one turn resulting in a hit is 4%; whereas, in the original the odds are 34%.
 
