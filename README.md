@@ -4,7 +4,12 @@
 An implementation of the classic [Battleship game](https://en.wikipedia.org/wiki/Battleship_(game)) for play on one more more BBC Micro:bits.
 
 ## Objective
-Sink your opponent's boat.
+Sink your opponent's boat.  
+
+### Similarities to Battleship
+Game is played similar to Battleship; however, it's distinct in that it is only played on a 5x5 grid as opposed to 10x10 in the original.  Because of this limited space, to maintain a statistical challenge, only one ship is placed per player per game as opposed to 10 ships in the original.
+
+Specifically, the odds of any one turn resulting in a hit is 4%; whereas, in the original the odds are 34%.
 
 ## Gameplay
 
